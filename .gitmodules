@@ -1,0 +1,3 @@
+[submodule "cluster/prerequisites/gateway-api"]
+	path = cluster/prerequisites/gateway-api
+	url = https://github.com/kubernetes-sigs/gateway-api.git

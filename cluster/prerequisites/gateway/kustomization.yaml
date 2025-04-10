@@ -1,0 +1,6 @@
+namespace: envoy-gateway-system
+
+resources:
+- envoyProxy.yaml
+- gatewayClass.yaml
+- gateway.yaml

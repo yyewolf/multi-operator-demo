@@ -1,0 +1,8 @@
+# Put ./bin in the PATH
+# so that we can use the kubebuilder binary
+# in the Tiltfile
+
+os.putenv("PATH", os.getenv("PATH") + ":./bin")
+
+load('../kubebuilder.Tiltfile', 'kubebuilder') 
+kubebuilder("multi.ch", "route", "v1", "Route", PREFIX="route-") 

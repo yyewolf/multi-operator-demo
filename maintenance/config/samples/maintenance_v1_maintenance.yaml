@@ -1,0 +1,9 @@
+apiVersion: maintenance.multi.ch/v1
+kind: Maintenance
+metadata:
+  labels:
+    app.kubernetes.io/name: maintenance
+    app.kubernetes.io/managed-by: kustomize
+  name: maintenance-sample
+spec:
+  # TODO(user): Add fields here
