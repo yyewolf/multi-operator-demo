@@ -5,4 +5,4 @@
 os.putenv("PATH", os.getenv("PATH") + ":./bin")
 
 load('../kubebuilder.Tiltfile', 'kubebuilder') 
-kubebuilder("multi.ch", "maintenance", "v1", "Maintenance", PREFIX="maintenance") 
+kubebuilder("multi.ch", "app", "v1", "App", PREFIX="app") 

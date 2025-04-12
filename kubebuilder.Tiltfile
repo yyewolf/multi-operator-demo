@@ -54,18 +54,17 @@ def kubebuilder(DOMAIN, GROUP, VERSION, KIND, IMG='controller:latest', CONTROLLE
     if not os.path.exists('api'):
         local("kubebuilder create api --resource --controller --group %s --version %s --kind %s" % (GROUP, VERSION, KIND))
 
-    local(manifests() + generate())
+    local(manifests() + generate() + binary())
 
-    local_resource(PREFIX+'CRD', manifests() + 'kustomize build config/crd | kubectl apply -f -', deps=["api"])
+    local_resource(PREFIX+' crd', manifests() + 'kustomize build config/crd | kubectl apply -f -', deps=["api"], labels=[PREFIX])
 
     k8s_yaml(yaml())
 
-    deps = ['internal/controller', 'cmd/main.go']
-    deps.append('api')
+    deps = ['internal', 'cmd', 'api']
 
-    local_resource(PREFIX+'Watch&Compile', generate() + binary(), deps=deps, ignore=['*/*/zz_generated.deepcopy.go'])
+    local_resource(PREFIX+' watch', generate() + binary(), deps=deps, ignore=['*/*/zz_generated.deepcopy.go'], labels=[PREFIX])
 
-    local_resource(PREFIX+'Sample YAML', 'kubectl apply -f ./config/samples', deps=["./config/samples"], resource_deps=[DIRNAME + "-controller-manager"])
+    local_resource(PREFIX+' example yaml', 'kubectl apply -k ./config/samples', deps=["./config/samples"], resource_deps=[DIRNAME + "-controller-manager"], labels=[PREFIX])
 
     docker_build_with_restart(IMG, '.',
      dockerfile_contents=DOCKERFILE,
@@ -73,5 +72,5 @@ def kubebuilder(DOMAIN, GROUP, VERSION, KIND, IMG='controller:latest', CONTROLLE
      only=['./tilt_bin/manager'],
      live_update=[
            sync('./tilt_bin/manager', '/manager'),
-       ]
+     ]
     )
