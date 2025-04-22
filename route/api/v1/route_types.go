@@ -1,25 +1,34 @@
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
+	"library"
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+)
 
 // RouteSpec defines the desired state of Route.
 type RouteSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +required
+	// +kubebuilder:validation:MinLength=1
+	Hostnames []gatewayv1.PreciseHostname `json:"hostnames,omitempty"`
 
-	// Foo is an example field of Route. Edit route_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	TargetRefs []*RouteTargetReference `json:"targetRefs,omitempty"`
+}
+
+type RouteTargetReference struct {
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
 }
 
 // RouteStatus defines the observed state of Route.
 type RouteStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	library.Status `json:",inline"`
+}
+
+func (route *Route) GetStatus() *library.Status {
+	return &route.Status.Status
 }
 
 // +kubebuilder:object:root=true

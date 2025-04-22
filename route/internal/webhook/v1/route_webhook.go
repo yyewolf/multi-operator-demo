@@ -3,8 +3,10 @@ package v1
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -21,7 +23,9 @@ var routelog = logf.Log.WithName("route-resource")
 func SetupRouteWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).For(&routev1.Route{}).
 		WithValidator(&RouteCustomValidator{}).
-		WithDefaulter(&RouteCustomDefaulter{}).
+		WithDefaulter(&RouteCustomDefaulter{
+			Client: *discovery.NewDiscoveryClientForConfigOrDie(mgr.GetConfig()),
+		}).
 		Complete()
 }
 
@@ -35,7 +39,7 @@ func SetupRouteWebhookWithManager(mgr ctrl.Manager) error {
 // NOTE: The +kubebuilder:object:generate=false marker prevents controller-gen from generating DeepCopy methods,
 // as it is used only for temporary operations and does not need to be deeply copied.
 type RouteCustomDefaulter struct {
-	// TODO(user): Add more fields as needed for defaulting
+	Client discovery.DiscoveryClient
 }
 
 var _ webhook.CustomDefaulter = &RouteCustomDefaulter{}
@@ -49,7 +53,37 @@ func (d *RouteCustomDefaulter) Default(ctx context.Context, obj runtime.Object) 
 	}
 	routelog.Info("Defaulting for Route", "name", route.GetName())
 
-	// TODO(user): fill in your defaulting logic.
+	for _, target := range route.Spec.TargetRefs {
+		if target.APIVersion != "" {
+			continue
+		}
+
+		// Find preferred API version for the target kind
+		resourceList, err := d.Client.ServerPreferredNamespacedResources()
+		if err != nil {
+			return fmt.Errorf("failed to get preferred API version for kind %s: %w", target.Kind, err)
+		}
+
+		for _, resource := range resourceList {
+			// The second check is used to ensure that we target only types from our group
+			// This could be a method to avoid conflicts if we have a Kind that might conflict with an already existing Kind.
+			if !strings.Contains(resource.GroupVersion, "multi.ch") {
+				continue
+			}
+
+			if len(resource.APIResources) == 0 {
+				continue
+			}
+
+			apiResource := resource.APIResources[0]
+			if apiResource.Kind == target.Kind {
+				// Set the preferred API version
+				target.APIVersion = resource.GroupVersion
+				fmt.Println("Setting preferred API version for target kind", target.Kind, "to", resource.GroupVersion)
+				break
+			}
+		}
+	}
 
 	return nil
 }

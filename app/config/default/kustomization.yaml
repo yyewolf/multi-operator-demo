@@ -22,11 +22,13 @@ resources:
 # crd/kustomization.yaml
 #- ../webhook
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
-#- ../certmanager
+- ../certmanager
+- ../extension
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
 #- ../prometheus
 # [METRICS] Expose the controller manager metrics service.
 - metrics_service.yaml
+- extension_service.yaml
 # [NETWORK POLICY] Protect the /metrics endpoint and Webhook Server with NetworkPolicy.
 # Only Pod(s) running a namespace labeled with 'metrics: enabled' will be able to gather the metrics.
 # Only CR(s) which requires webhooks and are applied on namespaces labeled with 'webhooks: enabled' will
@@ -44,9 +46,13 @@ patches:
 # Uncomment the patches line if you enable Metrics and CertManager
 # [METRICS-WITH-CERTS] To enable metrics protected with certManager, uncomment the following line.
 # This patch will protect the metrics with certManager self-signed certs.
-#- path: cert_metrics_manager_patch.yaml
-#  target:
-#    kind: Deployment
+- path: cert_metrics_manager_patch.yaml
+  target:
+    kind: Deployment
+
+- path: cert_extension_manager_patch.yaml
+  target:
+    kind: Deployment
 
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
 # crd/kustomization.yaml
@@ -56,7 +62,21 @@ patches:
 
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER' prefix.
 # Uncomment the following replacements to add the cert-manager CA injection annotations
-#replacements:
+replacements:
+- source: 
+    kind: Service
+    version: v1
+    name: controller-manager-extension-service
+    fieldPath: metadata.name
+  targets:
+    - select:
+        kind: APIService
+      fieldPaths:
+        - spec.service.name
+      options:
+        delimiter: '.'
+        index: 0
+        create: true
 # - source: # Uncomment the following block to enable certificates for metrics
 #     kind: Service
 #     version: v1

@@ -1,0 +1,14 @@
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1.agent.app.multi.ch
+spec:
+  group: agent.app.multi.ch
+  groupPriorityMinimum: 1000
+  version: v1
+  versionPriority: 100
+  insecureSkipTLSVerify: true
+  service:
+    namespace: system
+    name: manager-metrics-service
+    port: 9999

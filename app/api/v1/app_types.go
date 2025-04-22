@@ -1,25 +1,29 @@
 package v1
 
 import (
+	"library"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // AppSpec defines the desired state of App.
 type AppSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +required
+	// +kubebuilder:validation:Minimum=1024
+	// +kubebuilder:validation:Maximum=65535
+	Port int32 `json:"port"`
 
-	// Foo is an example field of App. Edit app_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// +required
+	Command string `json:"command"`
 }
 
 // AppStatus defines the observed state of App.
 type AppStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	library.Status `json:",inline"`
+}
+
+func (app *App) GetStatus() *library.Status {
+	return &app.Status.Status
 }
 
 // +kubebuilder:object:root=true
@@ -33,6 +37,8 @@ type App struct {
 	Spec   AppSpec   `json:"spec,omitempty"`
 	Status AppStatus `json:"status,omitempty"`
 }
+
+var _ library.ControllerResource = &App{}
 
 // +kubebuilder:object:root=true
 

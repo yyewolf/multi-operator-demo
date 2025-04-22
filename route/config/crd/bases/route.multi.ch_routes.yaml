@@ -39,13 +39,196 @@ spec:
           spec:
             description: RouteSpec defines the desired state of Route.
             properties:
-              foo:
-                description: Foo is an example field of Route. Edit route_types.go
-                  to remove/update
-                type: string
+              hostnames:
+                items:
+                  description: |-
+                    PreciseHostname is the fully qualified domain name of a network host. This
+                    matches the RFC 1123 definition of a hostname with 1 notable exception that
+                    numeric IP addresses are not allowed.
+
+                    Note that as per RFC1035 and RFC1123, a *label* must consist of lower case
+                    alphanumeric characters or '-', and must start and end with an alphanumeric
+                    character. No other punctuation is allowed.
+                  maxLength: 253
+                  minLength: 1
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                  type: string
+                type: array
+              targetRefs:
+                items:
+                  properties:
+                    apiVersion:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - apiVersion
+                  - kind
+                  - name
+                  type: object
+                type: array
+            required:
+            - hostnames
             type: object
           status:
             description: RouteStatus defines the observed state of Route.
+            properties:
+              childResources:
+                description: |-
+                  ObjectReferenceList is a list of ChildResource.
+                  It is used to represent a collection of child resources in the status of a parent resource.
+                  This struct is typically used in the status subresource of a Kubernetes custom resource.
+                items:
+                  description: |-
+                    ObjectReference represents a child resource of a parent resource.
+                    It contains metadata about the child resource, including its API version,
+                    kind, group, name, UID, status, and reason.
+                    This struct is used to track the status of child resources in the parent resource's status.
+                    It is typically used in the status subresource of a Kubernetes custom resource.
+                  properties:
+                    apiVersion:
+                      type: string
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    message:
+                      type: string
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    transitionTime:
+                      format: date-time
+                      type: string
+                    uid:
+                      type: string
+                  required:
+                  - apiVersion
+                  - group
+                  - kind
+                  - name
+                  - namespace
+                  - observedGeneration
+                  - status
+                  - transitionTime
+                  type: object
+                type: array
+              conditions:
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              dependencies:
+                description: |-
+                  ObjectReferenceList is a list of ChildResource.
+                  It is used to represent a collection of child resources in the status of a parent resource.
+                  This struct is typically used in the status subresource of a Kubernetes custom resource.
+                items:
+                  description: |-
+                    ObjectReference represents a child resource of a parent resource.
+                    It contains metadata about the child resource, including its API version,
+                    kind, group, name, UID, status, and reason.
+                    This struct is used to track the status of child resources in the parent resource's status.
+                    It is typically used in the status subresource of a Kubernetes custom resource.
+                  properties:
+                    apiVersion:
+                      type: string
+                    group:
+                      type: string
+                    kind:
+                      type: string
+                    message:
+                      type: string
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    transitionTime:
+                      format: date-time
+                      type: string
+                    uid:
+                      type: string
+                  required:
+                  - apiVersion
+                  - group
+                  - kind
+                  - name
+                  - namespace
+                  - observedGeneration
+                  - status
+                  - transitionTime
+                  type: object
+                type: array
+              lastStep:
+                type: string
             type: object
         type: object
     served: true

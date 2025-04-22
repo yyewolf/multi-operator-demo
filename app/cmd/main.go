@@ -24,6 +24,7 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"golang.org/x/sync/errgroup"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,6 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	appv1 "multi.ch/app/api/v1"
+	"multi.ch/app/internal/apiservice"
 	"multi.ch/app/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
@@ -203,8 +205,8 @@ func main() {
 	}
 
 	if err = (&controller.AppReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		RuntimeScheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "App")
 		os.Exit(1)
@@ -236,8 +238,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	apiService := apiservice.New(mgr.GetClient())
+
+	context := ctrl.SetupSignalHandler()
+	group, context := errgroup.WithContext(context)
+
+	group.Go(func() error {
+		setupLog.Info("starting manager")
+		if err := mgr.Start(context); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	group.Go(func() error {
+		return apiService.Run(context)
+	})
+
+	if err = group.Wait(); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
