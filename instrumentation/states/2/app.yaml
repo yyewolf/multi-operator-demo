@@ -1,0 +1,11 @@
+apiVersion: app.multi.ch/v1
+kind: App
+metadata:
+  labels:
+    app.kubernetes.io/name: app
+    app.kubernetes.io/managed-by: kustomize
+  name: app-sample
+spec:
+  port: 5000
+  command: |
+    /bin/bash -c "flask --app=/data/www/apps/app-2/app.py run --host=0.0.0.0"

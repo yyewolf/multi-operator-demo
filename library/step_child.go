@@ -135,7 +135,6 @@ func waitForChildReady[
 
 		changed := controllerStatus.ChildResources.Set(childRef)
 		if changed {
-			fmt.Println("set has changed")
 			err := reconciler.Status().Update(ctx, controller)
 			if err != nil {
 				return ResultInError(errors.Wrap(err, "failed to update status"))

@@ -2,7 +2,6 @@ package library
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -66,12 +65,10 @@ func NewResolveDynamicDependenciesStep[
 
 			missingItems := getItemsMissingFrom(newDependenciesRef, controllerStatus.Dependencies)
 			for _, item := range missingItems {
-				fmt.Println(item)
 				// Get the item from the cluster
 				var object unstructured.Unstructured
 				object.SetAPIVersion(item.GroupVersionKind().GroupVersion().String())
 				object.SetKind(item.GroupVersionKind().Kind)
-				fmt.Println(object)
 				var key = types.NamespacedName{
 					Name:      item.Name,
 					Namespace: item.Namespace,
@@ -92,7 +89,6 @@ func NewResolveDynamicDependenciesStep[
 					}
 
 					if hasOwnerRef {
-						fmt.Println("removing owner ref from", item.GroupVersionKind(), key)
 						if err := controllerutil.RemoveOwnerReference(controller, &object, reconciler.GetScheme()); err != nil {
 							return ResultInError(errors.Wrap(err, "failed to remove owner reference"))
 						}

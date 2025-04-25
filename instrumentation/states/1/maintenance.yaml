@@ -1,0 +1,12 @@
+apiVersion: maintenance.multi.ch/v1
+kind: Maintenance
+metadata:
+  labels:
+    app.kubernetes.io/name: maintenance
+    app.kubernetes.io/managed-by: kustomize
+  name: maintenance-sample
+spec:
+  replaces:
+    apiVersion: app.multi.ch/v1
+    kind: App
+    name: app-sample

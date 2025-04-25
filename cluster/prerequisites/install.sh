@@ -17,6 +17,13 @@ kubectl apply -k gateway-api/config/crd || {
   exit 1
 }
 
+# Creating maintenance service
+echo "[$(date)] Applying maintenance service..."
+kubectl apply -k maintenance || {
+  echo "[$(date)] Failed to apply maintenance service"
+  exit 1
+}
+
 # Install or upgrade envoy-gateway
 echo "[$(date)] Installing or upgrading envoy-gateway..."
 if helm status eg -n envoy-gateway-system > /dev/null 2>&1; then
