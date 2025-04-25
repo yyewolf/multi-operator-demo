@@ -6,7 +6,6 @@ import (
 	"library"
 
 	"golang.org/x/exp/maps"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -15,9 +14,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
+	envoyapiv1alpha1 "github.com/envoyproxy/gateway/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	routev1 "multi.ch/route/api/v1"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // RouteReconciler reconciles a Route object
@@ -103,6 +104,9 @@ func (reconciler *RouteReconciler) GetChildren(ctx context.Context, req ctrl.Req
 // +kubebuilder:rbac:groups=route.multi.ch,resources=routes/finalizers,verbs=update
 
 // +kubebuilder:rbac:groups=app.multi.ch,resources=apps,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups=maintenance.multi.ch,resources=maintenances,verbs=get;list;watch;update;patch
+
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes,verbs=get;list;watch;create;update;patch;delete
 
 func (reconciler *RouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := logf.FromContext(ctx)
@@ -110,7 +114,6 @@ func (reconciler *RouteReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	stepper := library.NewStepper(logger,
 		library.WithStep(library.NewFindControllerResourceStep(reconciler)),
 		library.WithStep(library.NewResolveDynamicDependenciesStep(reconciler)),
-		// library.WithStep(reconciler.NewTestStep()),
 		library.WithStep(library.NewReconcileChildrenStep(reconciler)),
 		library.WithStep(library.NewEndStep(reconciler)),
 	)
@@ -134,6 +137,18 @@ func (reconciler *RouteReconciler) httpRouteGenerator(ctx context.Context, req c
 			return nil, false, err
 		}
 
+		var backendRef gatewayv1.BackendObjectReference
+
+		if routeContract.ServiceRef != nil {
+			backendRef.Name = gatewayv1.ObjectName(routeContract.ServiceRef.Name)
+			backendRef.Port = library.Opt(gatewayv1.PortNumber(routeContract.ServiceRef.Port))
+		} else if routeContract.BackendRef != nil {
+			backendRef.Group = library.Opt(gatewayv1.Group(envoyapiv1alpha1.GroupName))
+			backendRef.Kind = library.Opt(gatewayv1.Kind("Backend"))
+			backendRef.Name = gatewayv1.ObjectName(routeContract.BackendRef.Name)
+			backendRef.Port = library.Opt(gatewayv1.PortNumber(routeContract.BackendRef.Port))
+		}
+
 		rules = append(rules, gatewayv1.HTTPRouteRule{
 			Name: library.Opt(gatewayv1.SectionName(fmt.Sprintf("target.%d", i))),
 			Matches: []gatewayv1.HTTPRouteMatch{
@@ -147,10 +162,7 @@ func (reconciler *RouteReconciler) httpRouteGenerator(ctx context.Context, req c
 			BackendRefs: []gatewayv1.HTTPBackendRef{
 				{
 					BackendRef: gatewayv1.BackendRef{
-						BackendObjectReference: gatewayv1.BackendObjectReference{
-							Name: gatewayv1.ObjectName(routeContract.ServiceRef.Name),
-							Port: library.Opt(gatewayv1.PortNumber(routeContract.ServiceRef.Port)),
-						},
+						BackendObjectReference: backendRef,
 					},
 				},
 			},
@@ -163,24 +175,19 @@ func (reconciler *RouteReconciler) httpRouteGenerator(ctx context.Context, req c
 			Namespace: reconciler.route.Namespace,
 		},
 		Spec: gatewayv1.HTTPRouteSpec{
+			CommonRouteSpec: gatewayv1.CommonRouteSpec{
+				ParentRefs: []gatewayv1.ParentReference{
+					{
+						Name:      "gateway",
+						Namespace: library.Opt(gatewayv1.Namespace("envoy-gateway-system")),
+					},
+				},
+			},
 			Hostnames: hostnames,
 			Rules:     rules,
 		},
 	}, false, nil
 }
-
-// func (reconciler *RouteReconciler) NewTestStep() library.Step {
-// 	return library.Step{
-// 		Name: "Test Step",
-// 		Step: func(ctx context.Context, req ctrl.Request) library.StepResult {
-// 			for _, target := range reconciler.targets {
-// 				fmt.Println(target)
-// 			}
-
-// 			return library.ResultSuccess()
-// 		},
-// 	}
-// }
 
 // SetupWithManager sets up the controller with the Manager.
 func (reconciler *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {

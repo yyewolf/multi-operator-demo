@@ -42,3 +42,10 @@ src: ./pages/5-aggregation-layer.md
 hide: false
 ---
 
+
+---
+transition: fade-out
+src: ./pages/6-demo.md
+hide: false
+---
+

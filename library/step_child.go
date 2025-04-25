@@ -135,6 +135,7 @@ func waitForChildReady[
 
 		changed := controllerStatus.ChildResources.Set(childRef)
 		if changed {
+			fmt.Println("set has changed")
 			err := reconciler.Status().Update(ctx, controller)
 			if err != nil {
 				return ResultInError(errors.Wrap(err, "failed to update status"))
@@ -173,6 +174,8 @@ func handleCreateOrUpdate[
 
 		if actualHash != desiredHash {
 			// Update the actual object with the desired object
+			desired.SetResourceVersion(actual.GetResourceVersion())
+
 			err := reconciler.Update(ctx, desired)
 			if err != nil {
 				return desired, ResultInError(fmt.Errorf("failed to update child resource: %w", err))

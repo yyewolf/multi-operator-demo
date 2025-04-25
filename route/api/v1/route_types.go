@@ -10,9 +10,11 @@ import (
 // RouteSpec defines the desired state of Route.
 type RouteSpec struct {
 	// +required
-	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MinItems=1
 	Hostnames []gatewayv1.PreciseHostname `json:"hostnames,omitempty"`
 
+	// +required
+	// +kubebuilder:validation:MinItems=1
 	TargetRefs []*RouteTargetReference `json:"targetRefs,omitempty"`
 }
 
@@ -42,6 +44,8 @@ type Route struct {
 	Spec   RouteSpec   `json:"spec,omitempty"`
 	Status RouteStatus `json:"status,omitempty"`
 }
+
+var _ library.ControllerResource = &Route{}
 
 // +kubebuilder:object:root=true
 

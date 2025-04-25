@@ -53,15 +53,15 @@ func (d *RouteCustomDefaulter) Default(ctx context.Context, obj runtime.Object) 
 	}
 	routelog.Info("Defaulting for Route", "name", route.GetName())
 
+	// Find preferred API version for the target kind
+	resourceList, err := d.Client.ServerPreferredNamespacedResources()
+	if err != nil {
+		return fmt.Errorf("failed to get ServerPreferredNamespacedResources: %w", err)
+	}
+
 	for _, target := range route.Spec.TargetRefs {
 		if target.APIVersion != "" {
 			continue
-		}
-
-		// Find preferred API version for the target kind
-		resourceList, err := d.Client.ServerPreferredNamespacedResources()
-		if err != nil {
-			return fmt.Errorf("failed to get preferred API version for kind %s: %w", target.Kind, err)
 		}
 
 		for _, resource := range resourceList {

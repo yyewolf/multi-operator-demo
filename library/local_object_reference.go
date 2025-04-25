@@ -32,9 +32,10 @@ type ObjectReference struct {
 }
 
 func (obj *ObjectReference) GroupVersionKind() schema.GroupVersionKind {
+	gv, _ := schema.ParseGroupVersion(obj.APIVersion)
 	return schema.GroupVersionKind{
-		Group:   obj.Group,
-		Version: obj.APIVersion,
+		Group:   gv.Group,
+		Version: gv.Version,
 		Kind:    obj.Kind,
 	}
 }
@@ -100,6 +101,19 @@ func (obj *ObjectReference) Equal(other *ObjectReference) bool {
 		obj.Namespace == other.Namespace
 }
 
+func (obj *ObjectReference) Changed(other *ObjectReference) bool {
+	return obj.APIVersion != other.APIVersion ||
+		obj.Kind != other.Kind ||
+		obj.Group != other.Group ||
+		obj.Name != other.Name ||
+		obj.Namespace != other.Namespace ||
+		obj.UID != other.UID ||
+		obj.Status != other.Status ||
+		obj.ObservedGeneration != other.ObservedGeneration ||
+		obj.Reason != other.Reason ||
+		obj.Message != other.Message
+}
+
 // ObjectReferenceList is a list of ChildResource.
 // It is used to represent a collection of child resources in the status of a parent resource.
 // This struct is typically used in the status subresource of a Kubernetes custom resource.
@@ -112,8 +126,12 @@ func (list *ObjectReferenceList) Set(obj *ObjectReference) bool {
 
 	for i, c := range *list {
 		if c.Group == obj.Group && c.Kind == obj.Kind && c.Name == obj.Name {
-			changed := (*list)[i] != *obj
-			(*list)[i] = *obj
+			previous := (*list)[i]
+			changed := previous.Changed(obj)
+			if changed {
+				fmt.Printf("%+#v %+#v\n", previous, obj)
+				(*list)[i] = *obj
+			}
 			return changed
 		}
 	}

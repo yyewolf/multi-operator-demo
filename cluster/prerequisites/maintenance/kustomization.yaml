@@ -1,0 +1,12 @@
+namespace: maintenance
+
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+
+configMapGenerator:
+- name: caddy-config
+  files:
+  - caddy/Caddyfile
+  - caddy/index.html

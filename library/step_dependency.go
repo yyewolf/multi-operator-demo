@@ -108,9 +108,9 @@ func newResolveDependencyStep[
 			dependencyRef.Status = metav1.ConditionTrue
 			dependencyRef.Reason = ""
 			dependencyRef.Message = ""
+			dependencyRef.ObservedGeneration = controller.GetGeneration()
 			changed := controllerStatus.Dependencies.Set(dependencyRef)
 			if changed {
-				dependencyRef.ObservedGeneration = controller.GetGeneration()
 
 				if err := reconciler.Status().Update(ctx, controller); err != nil {
 					return ResultInError(errors.Wrap(err, "failed to update status"))

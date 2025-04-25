@@ -4,6 +4,7 @@ import (
 	"library"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	routev1 "multi.ch/route/api/v1"
 )
 
 // AppSpec defines the desired state of App.
@@ -19,6 +20,8 @@ type AppSpec struct {
 
 // AppStatus defines the observed state of App.
 type AppStatus struct {
+	routev1.RouteContractInjector `json:",inline"`
+
 	library.Status `json:",inline"`
 }
 

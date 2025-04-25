@@ -17,25 +17,33 @@ limitations under the License.
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
+	"library"
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	routev1 "multi.ch/route/api/v1"
+)
 
 // MaintenanceSpec defines the desired state of Maintenance.
 type MaintenanceSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +required
+	Replaces *MaintenanceTargetReference `json:"replaces"`
+}
 
-	// Foo is an example field of Maintenance. Edit maintenance_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type MaintenanceTargetReference struct {
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
 }
 
 // MaintenanceStatus defines the observed state of Maintenance.
 type MaintenanceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	routev1.RouteContractInjector `json:",inline"`
+
+	library.Status `json:",inline"`
+}
+
+func (maintenance *Maintenance) GetStatus() *library.Status {
+	return &maintenance.Status.Status
 }
 
 // +kubebuilder:object:root=true
@@ -49,6 +57,8 @@ type Maintenance struct {
 	Spec   MaintenanceSpec   `json:"spec,omitempty"`
 	Status MaintenanceStatus `json:"status,omitempty"`
 }
+
+var _ library.ControllerResource = &Maintenance{}
 
 // +kubebuilder:object:root=true
 

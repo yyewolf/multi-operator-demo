@@ -17,6 +17,7 @@ check-requirements:
 	@command -v kind >/dev/null 2>&1 || { echo >&2 "kind is not installed. Please install it first."; exit 1; }
 	@command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is not installed. Please install it first."; exit 1; }
 	@command -v helm >/dev/null 2>&1 || { echo >&2 "helm is not installed. Please install it first."; exit 1; }
+	@command -v docker >/dev/null 2>&1 || { echo >&2 "docker is not installed. Please install it first."; exit 1; }
 
 # Create a kind cluster
 .PHONY: create-cluster
@@ -37,4 +38,4 @@ apply-installation: check-requirements
 
 # Full deploy: create cluster, wait, apply kustomization
 .PHONY: deploy
-deploy: create-cluster apply-kustomization
+deploy: create-cluster apply-installation

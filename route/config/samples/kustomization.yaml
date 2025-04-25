@@ -1,4 +1,5 @@
 ## Append samples of your project ##
 resources:
 - route_v1_route.yaml
+- route_v1_route-maintenance.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

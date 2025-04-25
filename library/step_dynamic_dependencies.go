@@ -66,14 +66,18 @@ func NewResolveDynamicDependenciesStep[
 
 			missingItems := getItemsMissingFrom(newDependenciesRef, controllerStatus.Dependencies)
 			for _, item := range missingItems {
+				fmt.Println(item)
 				// Get the item from the cluster
 				var object unstructured.Unstructured
-				object.SetGroupVersionKind(item.GroupVersionKind())
+				object.SetAPIVersion(item.GroupVersionKind().GroupVersion().String())
+				object.SetKind(item.GroupVersionKind().Kind)
+				fmt.Println(object)
 				var key = types.NamespacedName{
 					Name:      item.Name,
 					Namespace: item.Namespace,
 				}
-				if err := reconciler.Get(ctx, key, &object); err != nil {
+				err := reconciler.Get(ctx, key, &object)
+				if err != nil {
 					// Ignore not found errors
 					if client.IgnoreNotFound(err) != nil {
 						return ResultInError(errors.Wrap(err, "failed to get dependency resource"))

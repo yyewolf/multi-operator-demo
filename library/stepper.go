@@ -115,26 +115,32 @@ func NewStep(name string, step func(ctx context.Context, req ctrl.Request) StepR
 }
 
 func (stepper *Stepper) Execute(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := stepper.logger.
-		WithValues("request", req.NamespacedName)
+	logger := stepper.logger
 
 	startedAt := time.Now()
-	logger.Info("Starting stepper execution")
+
+	logger.Info("\n\nStarting stepper execution")
 
 	for _, step := range stepper.steps {
+		time.Sleep(5 * time.Second)
 		logger.Info("Executing step", "step", step.Name)
+
+		stepStartedAt := time.Now()
 		result := step.Step(ctx, req)
+		stepDuration := time.Since(stepStartedAt)
 
 		if result.ShouldReturn() {
 			if result.err != nil {
-				logger.Error(result.err, "Error in step", "step", step.Name)
+				logger.Error(result.err, "Error in step", "step", step.Name, "stepDuration", stepDuration)
 			} else if result.requeue {
-				logger.Info("Requeueing after step", "step", step.Name)
+				logger.Info("Requeueing after step", "step", step.Name, "stepDuration", stepDuration)
 			} else if result.requeueAfter > 0 {
-				logger.Info("Requeueing after step", "step", step.Name, "after", result.requeueAfter)
+				logger.Info("Requeueing after step", "step", step.Name, "after", result.requeueAfter, "stepDuration", stepDuration)
 			}
 			return result.Normal()
 		}
+
+		logger.Info("Executed step", "step", step.Name, "stepDuration", stepDuration)
 	}
 
 	logger.Info("All steps executed successfully", "duration", time.Since(startedAt))

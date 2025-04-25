@@ -1,0 +1,13 @@
+apiVersion: route.multi.ch/v1
+kind: Route
+metadata:
+  labels:
+    app.kubernetes.io/name: route
+    app.kubernetes.io/managed-by: kustomize
+  name: route-sample-maintenance
+spec:
+  hostnames:
+    - test-maintenance.yewolf.fr
+  targetRefs:
+    - kind: Maintenance
+      name: maintenance-sample

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"library"
+	"reflect"
 	"text/template"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	appv1 "multi.ch/app/api/v1"
 	"multi.ch/app/internal/supervisord"
+	routev1 "multi.ch/route/api/v1"
 )
 
 const (
@@ -99,6 +101,7 @@ func (reconciler *AppReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		library.WithStep(library.NewFindControllerResourceStep(reconciler)),
 		library.WithStep(library.NewResolveDynamicDependenciesStep(reconciler)),
 		library.WithStep(library.NewReconcileChildrenStep(reconciler)),
+		library.WithStep(reconciler.NewFillContractStep()),
 		library.WithStep(library.NewEndStep(reconciler)),
 	)
 
@@ -263,4 +266,30 @@ func (reconciler *AppReconciler) deploymentGenerator(ctx context.Context, req ct
 			},
 		},
 	}, false, nil
+}
+
+func (reconciler *AppReconciler) NewFillContractStep() library.Step {
+	return library.Step{
+		Name: "Fill Contract",
+		Step: func(ctx context.Context, req ctrl.Request) library.StepResult {
+			newContract := routev1.RouteContract{
+				ServiceRef: &routev1.RouteContractLocalServiceRef{
+					Name: reconciler.service.Name,
+					Port: 80,
+				},
+			}
+
+			if reflect.DeepEqual(reconciler.app.Status.RouteContractInjector.RouteContract, newContract) {
+				return library.ResultSuccess()
+			}
+
+			reconciler.app.Status.RouteContractInjector.RouteContract = newContract
+
+			if err := reconciler.Status().Update(ctx, &reconciler.app); err != nil {
+				return library.ResultInError(err)
+			}
+
+			return library.ResultSuccess()
+		},
+	}
 }

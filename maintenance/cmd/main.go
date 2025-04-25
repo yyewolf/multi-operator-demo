@@ -37,6 +37,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	envoyapiv1alpha1 "github.com/envoyproxy/gateway/api/v1alpha1"
 	maintenancev1 "multi.ch/maintenance/api/v1"
 	"multi.ch/maintenance/internal/controller"
 	// +kubebuilder:scaffold:imports
@@ -51,6 +52,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(maintenancev1.AddToScheme(scheme))
+	utilruntime.Must(envoyapiv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -203,8 +205,8 @@ func main() {
 	}
 
 	if err = (&controller.MaintenanceReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		RuntimeScheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Maintenance")
 		os.Exit(1)
