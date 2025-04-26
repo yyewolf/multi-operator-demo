@@ -128,8 +128,8 @@ func (reconciler *RouteReconciler) httpRouteGenerator(ctx context.Context, req c
 	}
 
 	var rules []gatewayv1.HTTPRouteRule
-	for i, key := range maps.Keys(reconciler.targets) {
-		target := reconciler.targets[key]
+	for i, targetRef := range maps.Keys(reconciler.targets) {
+		target := reconciler.targets[targetRef]
 
 		// Get the route contract from the target
 		routeContract, err := library.GetContract[routev1.RouteContract](target, "routeContract")
@@ -155,7 +155,7 @@ func (reconciler *RouteReconciler) httpRouteGenerator(ctx context.Context, req c
 				{
 					Path: &gatewayv1.HTTPPathMatch{
 						Type:  library.Opt(gatewayv1.PathMatchPathPrefix),
-						Value: library.Opt("/"),
+						Value: library.Opt(targetRef.PathPrefix),
 					},
 				},
 			},

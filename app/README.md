@@ -1,135 +1,48 @@
-# app
-// TODO(user): Add simple overview of use/purpose
+# App Operator
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+The App operator is responsible for deploying an end-user application and its configuration. The design here is minimal and can look like this :
 
-## Getting Started
-
-### Prerequisites
-- go version v1.23.0+
-- docker version 17.03+.
-- kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
-
-### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
-
-```sh
-make docker-build docker-push IMG=<some-registry>/app:tag
+```yaml
+apiVersion: app.multi.ch/v1
+kind: App
+metadata:
+  name: app-sample
+spec:
+  port: 8080
+  command: |
+    /bin/bash -c "python3 -m http.server 8080"
 ```
 
-**NOTE:** This image ought to be published in the personal registry you specified.
-And it is required to have access to pull the image from the working environment.
-Make sure you have the proper permission to the registry if the above commands don’t work.
+## Design
 
-**Install the CRDs into the cluster:**
+The process of the user is handled by supervisor, which is a process manager for Linux. It is responsible for starting the application and monitoring its health. The operator uses the `supervisor` image to run the application. 
 
-```sh
-make install
+For the purpose of this demo, the `workload` image already contains two example applications, this is not really necessary as you could give access to the container to the end-user for him to build his app.
+
+The [Dockerfile](./docker/Dockerfile) here runs as root, which is not a good practice either.
+
+Supervisor also offers an http server to remotely control the process. This *could* be used to check health, but in this demo we are only using the `start`, `stop` and `restart` commands. To do this, we add a APIService to Kubernetes in order to expose custom endpoints to the operator. The APIService can be called with the following command:
+
+```bash
+$ kubectl get --raw="/apis/agent.app.multi.ch/v1/namespaces/<NS>/apps/<NAME>/<ACTION>"
 ```
 
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
+This demonstration does not take into account the security standpoint of our implementation and ignores other problems such as :
+- How to change the technology (python) of the application
+- How to handle updating the runtime
+- How to make sure the end-user cannot break anything
+- How to handle the lifecycle of the application
+- Resource Requests/Limits
+- Probably much more...
 
-```sh
-make deploy IMG=<some-registry>/app:tag
+## Contract
+
+App is meant to be *routeable* and exposed to the world via HTTP. As such, it implements Route's contract which looks like this : 
+
+```yaml
+status:
+  routeContract:
+    serviceRef:
+      name: app-sample
+      port: 80
 ```
-
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
-
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
-
-```sh
-kubectl apply -k config/samples/
-```
-
->**NOTE**: Ensure that the samples has default values to test it out.
-
-### To Uninstall
-**Delete the instances (CRs) from the cluster:**
-
-```sh
-kubectl delete -k config/samples/
-```
-
-**Delete the APIs(CRDs) from the cluster:**
-
-```sh
-make uninstall
-```
-
-**UnDeploy the controller from the cluster:**
-
-```sh
-make undeploy
-```
-
-## Project Distribution
-
-Following the options to release and provide this solution to the users.
-
-### By providing a bundle with all YAML files
-
-1. Build the installer for the image built and published in the registry:
-
-```sh
-make build-installer IMG=<some-registry>/app:tag
-```
-
-**NOTE:** The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without its
-dependencies.
-
-2. Using the installer
-
-Users can just run 'kubectl apply -f <URL for YAML BUNDLE>' to install
-the project, i.e.:
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/app/<tag or branch>/dist/install.yaml
-```
-
-### By providing a Helm Chart
-
-1. Build the chart using the optional helm plugin
-
-```sh
-kubebuilder edit --plugins=helm/v1-alpha
-```
-
-2. See that a chart was generated under 'dist/chart', and users
-can obtain this solution from there.
-
-**NOTE:** If you change the project, you need to update the Helm Chart
-using the same command above to sync the latest changes. Furthermore,
-if you create webhooks, you need to use the above command with
-the '--force' flag and manually ensure that any custom configuration
-previously added to 'dist/chart/values.yaml' or 'dist/chart/manager/manager.yaml'
-is manually re-applied afterwards.
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-**NOTE:** Run `make help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
-
-## License
-
-Copyright 2025.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-

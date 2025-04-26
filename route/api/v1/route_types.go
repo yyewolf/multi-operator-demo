@@ -22,6 +22,8 @@ type RouteTargetReference struct {
 	APIVersion string `json:"apiVersion"`
 	Kind       string `json:"kind"`
 	Name       string `json:"name"`
+
+	PathPrefix string `json:"pathPrefix"`
 }
 
 // RouteStatus defines the observed state of Route.

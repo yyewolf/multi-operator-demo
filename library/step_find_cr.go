@@ -67,6 +67,20 @@ func NewFindControllerResourceStep[
 				if err != nil {
 					return ResultInError(errors.Wrap(err, "failed to update controller resource status"))
 				}
+			} else if readyCondition.ObservedGeneration != controllerResource.GetGeneration() {
+				// If the observed generation is not equal to the current generation, update it
+				readyCondition.ObservedGeneration = controllerResource.GetGeneration()
+				readyCondition.Status = metav1.ConditionFalse
+				readyCondition.Reason = ReasonReconciling
+				readyCondition.Message = "the resource is being reconciled"
+				changed = meta.SetStatusCondition(&controllerResourceStatus.Conditions, *readyCondition)
+				if changed {
+					err = reconciler.Status().Update(ctx, controllerResource)
+					if err != nil {
+						return ResultInError(errors.Wrap(err, "failed to update controller resource status"))
+					}
+				}
+
 			}
 
 			// If it's finalizing, change the ready condition to false and set the reason

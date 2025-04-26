@@ -19,10 +19,14 @@ check-requirements:
 	@command -v helm >/dev/null 2>&1 || { echo >&2 "helm is not installed. Please install it first."; exit 1; }
 	@command -v docker >/dev/null 2>&1 || { echo >&2 "docker is not installed. Please install it first."; exit 1; }
 
-# Create a kind cluster
 .PHONY: create-cluster
 create-cluster: check-requirements
-	kind create cluster --name $(CLUSTER_NAME) --wait=60s --config cluster/config.yaml --kubeconfig $(KUBECONFIG_PATH)
+	@if ! kind get clusters | grep -q "^$(CLUSTER_NAME)$$"; then \
+		echo "Creating kind cluster $(CLUSTER_NAME)..."; \
+		kind create cluster --name $(CLUSTER_NAME) --wait=60s --config cluster/config.yaml --kubeconfig $(KUBECONFIG_PATH); \
+	else \
+		echo "Cluster $(CLUSTER_NAME) already exists. Skipping creation."; \
+	fi
 
 # Delete the kind cluster
 .PHONY: delete-cluster
@@ -36,6 +40,16 @@ apply-installation: check-requirements
 	@echo "Installation applied successfully."
 	@echo "You can now access the cluster using the kubeconfig at $(KUBECONFIG_PATH)."
 
+install-%-operator:
+	@echo "Installing $* operator..."
+	cd $* && make && cd ..
+	docker build -t $*controller -f $*/Dockerfile .
+	kind load docker-image $*controller --name $(CLUSTER_NAME)
+	kubectl apply -k $*/config/default
+
+.PHONY: install-operators
+install-operators: install-app-operator install-route-operator install-maintenance-operator
+
 # Full deploy: create cluster, wait, apply kustomization
 .PHONY: deploy
-deploy: create-cluster apply-installation
+deploy: create-cluster apply-installation install-operators

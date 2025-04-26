@@ -64,10 +64,13 @@ spec:
                       type: string
                     name:
                       type: string
+                    pathPrefix:
+                      type: string
                   required:
                   - apiVersion
                   - kind
                   - name
+                  - pathPrefix
                   type: object
                 minItems: 1
                 type: array

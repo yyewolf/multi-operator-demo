@@ -63,7 +63,13 @@ func (reconciler *AppReconciler) SetCustomResource(app *appv1.App) {
 }
 
 func (reconciler *AppReconciler) GetDependencies(ctx context.Context, req ctrl.Request) ([]library.GenericDependencyResource, error) {
-	return []library.GenericDependencyResource{}, nil
+	return []library.GenericDependencyResource{
+		library.NewDependencyResource(
+			&corev1.ConfigMap{},
+			library.WithName[*corev1.ConfigMap]("test"),
+			library.WithNamespace[*corev1.ConfigMap]("default"),
+		),
+	}, nil
 }
 
 func (reconciler *AppReconciler) GetChildren(ctx context.Context, req ctrl.Request) ([]library.GenericChildResource, error) {

@@ -1,4 +1,4 @@
-# Welcome to [Slidev](https://github.com/slidevjs/slidev)!
+# Presentation
 
 To start the slide show:
 
