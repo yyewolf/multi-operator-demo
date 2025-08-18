@@ -11,3 +11,4 @@ spec:
   targetRefs:
     - kind: App
       name: app-sample
+      pathPrefix: "/"

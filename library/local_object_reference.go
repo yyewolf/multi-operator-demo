@@ -129,7 +129,7 @@ func (list *ObjectReferenceList) Set(obj *ObjectReference) bool {
 			previous := (*list)[i]
 			changed := previous.Changed(obj)
 			if changed {
-				fmt.Printf("%+#v %+#v\n", previous, obj)
+				// fmt.Printf("%+#v %+#v\n", previous, obj)
 				(*list)[i] = *obj
 			}
 			return changed

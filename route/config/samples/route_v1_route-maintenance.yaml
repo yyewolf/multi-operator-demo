@@ -11,3 +11,4 @@ spec:
   targetRefs:
     - kind: Maintenance
       name: maintenance-sample
+      pathPrefix: "/"

@@ -11,7 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func newResolveDependencyStep[
@@ -63,17 +62,12 @@ func newResolveDependencyStep[
 
 			dependency.Set(dep)
 
-			hasOwnerRef, err := controllerutil.HasOwnerReference(dep.GetOwnerReferences(), controller, reconciler.GetScheme())
-			if err != nil {
-				return ResultInError(err)
-			}
-
 			if isFinalizing(reconciler) {
-				if hasOwnerRef {
-					if err := controllerutil.RemoveOwnerReference(controller, dep, reconciler.GetScheme()); err != nil {
-						return ResultInError(err)
-					}
-
+				changed, err := RemoveManagedBy(dep, controller, reconciler.GetScheme())
+				if err != nil {
+					return ResultInError(err)
+				}
+				if changed {
 					if err := reconciler.Update(ctx, dep); err != nil {
 						return ResultInError(err)
 					}
@@ -83,16 +77,16 @@ func newResolveDependencyStep[
 			}
 
 			// Setup watch if not already set
-			result := SetupWatch(reconciler, dep)(ctx, req)
+			result := SetupWatch(reconciler, dep, true)(ctx, req)
 			if result.ShouldReturn() {
 				return result.FromSubStep()
 			}
 
-			if !hasOwnerRef {
-				if err := controllerutil.SetOwnerReference(controller, dep, reconciler.GetScheme()); err != nil {
-					return ResultInError(err)
-				}
-
+			changed, err := AddManagedBy(dep, controller, reconciler.GetScheme())
+			if err != nil {
+				return ResultInError(err)
+			}
+			if changed {
 				if err := reconciler.Update(ctx, dep); err != nil {
 					return ResultInError(err)
 				}
@@ -109,9 +103,8 @@ func newResolveDependencyStep[
 			dependencyRef.Reason = ""
 			dependencyRef.Message = ""
 			dependencyRef.ObservedGeneration = controller.GetGeneration()
-			changed := controllerStatus.Dependencies.Set(dependencyRef)
+			changed = controllerStatus.Dependencies.Set(dependencyRef)
 			if changed {
-
 				if err := reconciler.Status().Update(ctx, controller); err != nil {
 					return ResultInError(errors.Wrap(err, "failed to update status"))
 				}

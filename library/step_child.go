@@ -69,7 +69,7 @@ func NewReconcileChildStep[
 			}
 
 			// Setup watch if not already set
-			result = SetupWatch(reconciler, desired)(ctx, req)
+			result = SetupWatch(reconciler, desired, false)(ctx, req)
 			if result.ShouldReturn() {
 				return result.FromSubStep()
 			}

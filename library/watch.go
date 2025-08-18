@@ -15,17 +15,28 @@ func SetupWatch[
 ](
 	reconciler Reconciler[ControllerResourceType],
 	object client.Object,
+	isDependency bool,
 ) func(ctx context.Context, req ctrl.Request) StepResult {
 	return func(ctx context.Context, req ctrl.Request) StepResult {
 		// Setup watch if not already set
 		watchSource := NewWatchKey(object, CacheTypeEnqueueForOwner)
 		if !reconciler.IsWatchingSource(watchSource) {
+			requestHandler := handler.EnqueueRequestForOwner(reconciler.GetScheme(), reconciler.GetRESTMapper(), reconciler.GetCustomResource())
+			if isDependency {
+				managedByHandler, err := GetManagedByReconcileRequests(reconciler.GetCustomResource(), reconciler.GetScheme())
+				if err != nil {
+					return ResultInError(errors.Wrap(err, "failed to add watch source"))
+				}
+
+				requestHandler = handler.EnqueueRequestsFromMapFunc(managedByHandler)
+			}
+
 			// Add the watch source to the reconciler
 			err := reconciler.GetController().Watch(
 				source.Kind(
 					reconciler.GetCache(),
 					object,
-					handler.EnqueueRequestForOwner(reconciler.GetScheme(), reconciler.GetRESTMapper(), reconciler.GetCustomResource()),
+					requestHandler,
 				),
 			)
 			if err != nil {
