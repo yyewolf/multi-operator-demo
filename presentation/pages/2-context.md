@@ -1,6 +1,6 @@
 ## The Platform We're Building
 
-We're building a **new hosting product** that:
+We've built a **new hosting product** that:
 
 - Relies heavily on **Kubernetes** and **Custom Resource Definitions (CRDs)**
 - Is powered by **multiple Operators**, each with its own concern

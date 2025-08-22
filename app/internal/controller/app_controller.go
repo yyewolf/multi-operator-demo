@@ -62,16 +62,6 @@ func (reconciler *AppReconciler) SetCustomResource(app *appv1.App) {
 	reconciler.app = *app
 }
 
-func (reconciler *AppReconciler) GetDependencies(ctx context.Context, req ctrl.Request) ([]library.GenericDependencyResource, error) {
-	return []library.GenericDependencyResource{
-		library.NewDependencyResource(
-			&corev1.ConfigMap{},
-			library.WithName[*corev1.ConfigMap]("test"),
-			library.WithNamespace[*corev1.ConfigMap]("default"),
-		),
-	}, nil
-}
-
 func (reconciler *AppReconciler) GetChildren(ctx context.Context, req ctrl.Request) ([]library.GenericChildResource, error) {
 	return []library.GenericChildResource{
 		library.NewChildResource(
@@ -105,7 +95,6 @@ func (reconciler *AppReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	stepper := library.NewStepper(logger,
 		library.WithStep(library.NewFindControllerResourceStep(reconciler)),
-		library.WithStep(library.NewResolveDynamicDependenciesStep(reconciler)),
 		library.WithStep(library.NewReconcileChildrenStep(reconciler)),
 		library.WithStep(reconciler.NewFillContractStep()),
 		library.WithStep(library.NewEndStep(reconciler)),

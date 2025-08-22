@@ -19,13 +19,16 @@ But what about when our resource depends on another one?
 
 To track and react to **external dependencies**:
 
-1. We add an **OwnerReference** to the *dependency* — but pointing **back to us**
-2. We set a **finalizer** on our custom resource
+1. We add a **Label** to the *dependency* that's pointing **back to the referer**
+   - That label is a list of all referers (by their type, name and namespace).
 
 Why?
 
 - So that dependency changes trigger reconciliation
-- And so we can **clean up owner references** before we’re deleted
+
+What about cleanup ?
+
+- Using a **finalizer** on the referer, we can make sure to clean that Label of the reference back.
 
 ---
 
@@ -35,11 +38,11 @@ Why?
 🧼 Finalizer ensures a clean delete lifecycle:
 
 1. User deletes the CR  
-2. Kubernetes sets `deletionTimestamp` but keeps the resource alive  
+2. Kubernetes sets `deletionTimestamp` but keeps our resource alive  
 3. Our controller:
-   - Removes all `ownerReferences` from dependent resources
+   - Removes the reference stored in the label `managed-by` from dependent resources
    - Then removes the **finalizer**  
 4. Now Kubernetes deletes the CR
 
-✅ No orphaned ownerReferences on dependent object that should not be deleted  
-✅ No premature garbage collection  
+✅ No orphaned labels on dependent object that should not be deleted  
+✅ No reconciliation triggered on deleted parents (that are still being refered to)
