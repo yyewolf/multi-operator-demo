@@ -1,0 +1,50 @@
+apiVersion: route.multi.ch/v1
+kind: Route
+metadata:
+  annotations:
+  creationTimestamp: "2025-08-26T13:14:30Z"
+  finalizers:
+  - route.multi.ch/finalizer
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: route
+  name: route-sample
+  namespace: default
+  resourceVersion: "63207"
+  uid: f6f1bb5b-a46a-435d-8543-8795195a3d92
+spec:
+  hostnames:
+  - 172.19.0.4
+  targetRefs:
+  - apiVersion: app.multi.ch/v1
+    kind: App
+    name: app-sample
+    pathPrefix: /
+status:
+  childResources:
+  - apiVersion: gateway.networking.k8s.io/v1
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: route-sample
+    namespace: default
+    observedGeneration: 1
+    status: "True"
+    transitionTime: "2025-08-26T13:14:30Z"
+    uid: 34d662f4-d5b7-453a-9671-a59ab9b096ea
+  conditions:
+  - lastTransitionTime: "2025-08-26T13:14:30Z"
+    message: the resource reached the end of reconciliation
+    observedGeneration: 1
+    reason: Reconciled
+    status: "True"
+    type: Ready
+  dependencies:
+  - apiVersion: app.multi.ch/v1
+    group: app.multi.ch
+    kind: App
+    name: app-sample
+    namespace: default
+    observedGeneration: 1
+    status: "True"
+    transitionTime: "2025-08-26T13:14:30Z"

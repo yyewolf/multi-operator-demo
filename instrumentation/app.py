@@ -19,7 +19,7 @@ TEMPLATE = '''
         <h1 class="title has-text-centered mb-6">🎛️ Presentation Control Panel</h1>
         <div class="columns is-centered">
             <div class="column is-4">
-                <h2 class="subtitle has-text-centered">App Controls</h2>
+                <h2 class="subtitle has-text-centered">Agent Operations</h2>
                 <form action="/start" method="POST">
                     <button class="button is-success is-fullwidth mb-2">▶️ Start App</button>
                 </form>
@@ -31,7 +31,7 @@ TEMPLATE = '''
                 </form>
             </div>
             <div class="column is-4">
-                <h2 class="subtitle has-text-centered">State Controls</h2>
+                <h2 class="subtitle has-text-centered">Resource Modifications</h2>
                 <form action="/state/1" method="POST">
                     <button class="button is-link is-light is-fullwidth mb-2">Set Command to App 1</button>
                 </form>

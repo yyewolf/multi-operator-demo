@@ -1,11 +1,19 @@
-## The Platform We're Building
+## The platform (and history)
 
-We've built a **new hosting product** that:
+<div class="p-12"> </div>
 
-- Relies heavily on **Kubernetes** and **Custom Resource Definitions (CRDs)**
-- Is powered by **multiple Operators**, each with its own concern
-- Aims to provide **developer-friendly abstractions**  
-  while maintaining **production-grade flexibility**
+ - 20+ year of web hosting
+ - Machines **shared** by multiple customers, single Apache instance
+ - New need : NodeJS
 
-Operators are at the heart of this platform —  
-and that's where the fun (and weirdness) begins.
+<div class="pl-50 mt-[-20px]">
+  <CircleLogo src="../assets/nodejs.png" size="120px" />
+</div>
+
+---
+
+###### The experience
+
+<SlidevVideo controls>
+  <source src="../assets/manager.mp4" />
+</SlidevVideo>

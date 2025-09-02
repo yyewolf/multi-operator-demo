@@ -1,0 +1,60 @@
+apiVersion: app.multi.ch/v1
+kind: App
+metadata:
+  annotations:
+    multi.ch/managed-by: '[{"name":"route-sample","namespace":"default","gvk":{"Group":"route.multi.ch","Version":"v1","Kind":"Route"}}]'
+  creationTimestamp: "2025-08-26T13:14:30Z"
+  finalizers:
+  - app.multi.ch/finalizer
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: app
+  name: app-sample
+  namespace: default
+  resourceVersion: "63203"
+  uid: b27d237f-4e22-479e-8853-94b8d27cf224
+spec:
+  command: |
+    /bin/bash -c "flask --app=/data/www/apps/app-1/app.py run --host=0.0.0.0"
+  port: 5000
+status:
+  childResources:
+  - apiVersion: v1
+    group: ""
+    kind: ConfigMap
+    name: app-sample
+    namespace: default
+    observedGeneration: 1
+    status: "True"
+    transitionTime: "2025-08-26T13:14:30Z"
+    uid: 76d35012-614e-481f-a38d-7e17dc1ed878
+  - apiVersion: apps/v1
+    group: apps
+    kind: Deployment
+    name: app-sample
+    namespace: default
+    observedGeneration: 1
+    status: "True"
+    transitionTime: "2025-08-26T13:14:30Z"
+    uid: e7252a5b-3f8d-4c9e-a7ec-f8befdd6ef75
+  - apiVersion: v1
+    group: ""
+    kind: Service
+    name: app-sample
+    namespace: default
+    observedGeneration: 1
+    status: "True"
+    transitionTime: "2025-08-26T13:14:30Z"
+    uid: 2e8d2f2c-7a57-4728-a1e1-ab0b7e265991
+  conditions:
+  - lastTransitionTime: "2025-08-26T13:14:30Z"
+    message: the resource reached the end of reconciliation
+    observedGeneration: 1
+    reason: Reconciled
+    status: "True"
+    type: Ready
+  routeContract:
+    serviceRef:
+      name: app-sample
+      port: 80
