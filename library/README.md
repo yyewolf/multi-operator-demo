@@ -131,7 +131,7 @@ func (reconciler *Reconciler) GetDependencies(ctx context.Context, req ctrl.Requ
 }
 ```
 
-It is not meant for cross-namespace dependencies as implemented right now, but can be modified to support this.
+It is can support cross-namespace dependencies as well.
 
 As per the children, the status of the dependency is set in the `status` of the CR. The status is set to `True` if the dependency is in a good state and `False` if there was an error or if the dependency is not in a good state.
 ```yaml
