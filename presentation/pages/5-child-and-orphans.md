@@ -1,3 +1,43 @@
+---
+layout: two-cols-header
+---
+
+# ⚡ Our Challenges
+
+::left::
+
+<div class="!-mt-32">
+
+### 🔄 Resource Tracking
+- Keep track of created resources  
+- Update when **child objects** change  
+
+<div class="p-4"></div>
+
+### 🔗 Dependency Management
+- Detect changes in **dependent objects**  
+- Ensure reconciliation reacts correctly  
+
+</div>
+
+::right::
+
+<div class="!-mt-32">
+
+### 🧹 Cleanup & Finalization
+- Run **cleanup tasks** before deletion  
+- Handle finalizers safely  
+
+<div class="p-4"></div>
+
+### 🚀 Beyond Reconciliation
+- Perform **actions outside the reconcile loop**  
+- Start / Stop / Refresh configuration ?
+
+</div>
+
+---
+
 <!-- Slide 7: Child Resources vs. Dependencies -->
 ## Managing Child Resources vs Dependencies
 
